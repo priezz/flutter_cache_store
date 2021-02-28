@@ -10,9 +10,9 @@ import '../flutter_cache_store.dart';
 typedef CustomFetch = Future<http.Response> Function(dynamic url,
     {Map<String, String> headers, Map<String, dynamic> custom});
 
-Future<http.Response> _defaultGetter(dynamic url,
+Future<http.Response> _defaultGetter(String url,
         {Map<String, String> headers, Map<String, dynamic> custom}) =>
-    http.get(url, headers: headers);
+    http.get(Uri.parse(url), headers: headers);
 
 /// Some helpers for internal usage
 class Utils {
