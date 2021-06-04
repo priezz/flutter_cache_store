@@ -59,7 +59,7 @@ class LeastFrequentlyUsedPolicy extends CacheStorePolicy {
       }
     });
 
-    await CacheStore.prefs!.setString(storeKey, jsonEncode(timestamps));
+    await CacheStore.prefs.setString(storeKey, jsonEncode(timestamps));
   }
 
   Future<Iterable<CacheItem>> cleanup(Iterable<CacheItem> allItems) async {

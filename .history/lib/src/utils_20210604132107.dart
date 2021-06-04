@@ -66,7 +66,7 @@ class Utils {
     Map<String, dynamic>? custom,
   }) async {
     final file = File(item.fullPath);
-    final key = item.filename!;
+    final key = item.filename;
     if (useCache &&
         await file.exists() &&
         ((_downloadLocks.containsKey(key) && _downloadLocks[key] == null) ||

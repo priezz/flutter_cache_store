@@ -48,6 +48,6 @@ abstract class CacheStorePolicy {
 
   /// Override this to customize the filename with relative path on disk.
   /// There is a good example - `Cache File Structure` in `README.md`
-  String generateFilename({final String? key, final String? url}) =>
+  String generateFilename({final String key, final String url}) =>
       Utils.genName();
 }

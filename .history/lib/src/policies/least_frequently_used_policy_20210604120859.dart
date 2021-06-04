@@ -6,7 +6,8 @@ import '../cache_store_policy.dart';
 /// [CacheItemPayload] to hold [LeastFrequentlyUsedPolicy] data
 class LFUPolicy extends CacheItemPayload {
   LFUPolicy() : this.hits = [];
-  LFUPolicy.from(this.hits, {int? chop}) {
+  LFUPolicy.from(List<int> list, {int chop}) {
+    hits = list;
     if (chop != null) this.chop(chop);
   }
 
@@ -54,12 +55,10 @@ class LeastFrequentlyUsedPolicy extends CacheStorePolicy {
   Future<void> saveItems(List<CacheItem> items) async {
     final timestamps = <String, dynamic>{};
     items.forEach((item) {
-      if (item.key != null) {
-        timestamps[item.key!] = (item.payload as LFUPolicy).hits;
-      }
+      timestamps[item.key] = (item.payload as LFUPolicy).hits;
     });
 
-    await CacheStore.prefs!.setString(storeKey, jsonEncode(timestamps));
+    await CacheStore.prefs.setString(storeKey, jsonEncode(timestamps));
   }
 
   Future<Iterable<CacheItem>> cleanup(Iterable<CacheItem> allItems) async {
@@ -79,11 +78,7 @@ class LeastFrequentlyUsedPolicy extends CacheStorePolicy {
       final hb = (b.payload as LFUPolicy).hits;
       final cnt = hb.length - ha.length;
 
-      return cnt != 0
-          ? cnt
-          : ha.isEmpty
-              ? 0
-              : hb.last - ha.last;
+      return cnt != 0 ? cnt : ha.isEmpty ? 0 : hb.last - ha.last;
     });
 
     saveItems(list.sublist(0, maxCount));
@@ -99,7 +94,7 @@ class LeastFrequentlyUsedPolicy extends CacheStorePolicy {
 
   Future<Iterable<CacheItem>> restore(List<CacheItem> allItems) async {
     Map<String, dynamic> stored =
-        jsonDecode(CacheStore.prefs!.getString(storeKey) ?? '{}');
+        jsonDecode(CacheStore.prefs.getString(storeKey) ?? '{}');
 
     final ts = now();
     return allItems.map((item) {

@@ -50,7 +50,7 @@ class Utils {
   /// Generates a random number combined based on timestamp
   static int genUniqId() => (_rand.nextInt(0x80000) << 45) | genNow();
 
-  static final _downloadLocks = <String, Lock?>{};
+  static final _downloadLocks = <String, Lock>{};
 
   /// Makes a `GET` request to [url] and save it to [item.fullPath]
   /// [url] and Optional [headers] parameters will pass to `http.get`
@@ -66,7 +66,7 @@ class Utils {
     Map<String, dynamic>? custom,
   }) async {
     final file = File(item.fullPath);
-    final key = item.filename!;
+    final key = item.filename;
     if (useCache &&
         await file.exists() &&
         ((_downloadLocks.containsKey(key) && _downloadLocks[key] == null) ||
@@ -85,8 +85,8 @@ class Utils {
             (fetch ?? _defaultGetter)(url, headers: headers, custom: custom),
           ]);
 
-          final File f = results.first as File;
-          final http.Response response = results.last as http.Response;
+          final File f = results.first;
+          final http.Response response = results.last;
 
           await Future.wait([
             onDownloaded(item, response.headers),

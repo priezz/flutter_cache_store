@@ -21,19 +21,19 @@ class CacheItem {
   CacheItem({this.store, this.key, this.filename});
 
   /// Returns the store owns the item
-  final CacheStore? store;
+  final CacheStore store;
 
   /// Returns the unique key of an item
-  final String? key;
+  final String key;
 
   /// Relative path and filename to [rootPath]
-  final String? filename;
+  final String filename;
 
   /// Holds extra-data required by a `Policy`
-  CacheItemPayload? payload;
+  CacheItemPayload payload;
 
   /// Absolute path of the file
-  String get fullPath => '${store?.path}/$filename';
+  String get fullPath => '${store.path}/$filename';
 
   /// Converts it to `JSON` to persist the item on disk
   Map<String, dynamic> toJson() => {
@@ -57,24 +57,23 @@ bool isValidCacheItem(CacheItem item) =>
 /// Singleton object to manage cache
 class CacheStore {
   /// Unique namespace
-  final String? namespace;
+  final String namespace;
   final CacheStorePolicy policyManager;
-  String get path =>
-      namespace == null ? _rootPath! : '${_rootPath}__$namespace';
+  String get path => namespace == null ? _rootPath : '${_rootPath}__$namespace';
 
   /// A simple callback function to customize your own fetch method.
   /// You can change it anytime. See its interface: [CustomFetch]
-  CustomFetch? fetch;
+  CustomFetch fetch;
 
   CacheStore._(this.namespace, this.policyManager);
 
   static final _lockCreation = new Lock();
   static final Map<String, CacheStore> _cacheStores = {};
-  static SharedPreferences? _prefs;
-  static String? _rootPath;
+  static SharedPreferences _prefs;
+  static String _rootPath;
 
   /// Public `SharedPreferences` instance
-  static SharedPreferences? get prefs => _prefs;
+  static SharedPreferences get prefs => _prefs;
 
   static Future<String> _getRootPath() async {
     final tmpPath = (await getTemporaryDirectory()).path;
@@ -92,12 +91,12 @@ class CacheStore {
   /// Set [clearNow] to `true` will immediately cleanup
   /// [fetch] is a shortcut to set [CacheStore.fetch]
   static Future<CacheStore> getInstance({
-    final String? namespace,
-    final CacheStorePolicy? policy,
+    final String namespace,
+    final CacheStorePolicy policy,
     final bool clearNow = false,
-    final CustomFetch? fetch,
+    final CustomFetch fetch,
   }) async {
-    CacheStore? instance;
+    CacheStore instance;
     await _lockCreation.synchronized(() async {
       instance = _cacheStores[namespace];
       if (instance != null) return;
@@ -105,11 +104,11 @@ class CacheStore {
       await _initStatic();
 
       instance = CacheStore._(namespace, policy ?? LessRecentlyUsedPolicy());
-      instance!.fetch = fetch;
-      await instance!._init(clearNow);
+      instance.fetch = fetch;
+      await instance._init(clearNow);
     });
 
-    return instance!;
+    return instance;
   }
 
   static const _PREF_KEY = 'CACHE_STORE';
@@ -119,15 +118,15 @@ class CacheStore {
 
   Future<void> _init(final bool clearNow) async {
     final Map<String, dynamic> data =
-        jsonDecode(prefs?.getString(prefKey) ?? '{}');
-    final items = (data['cache'] as List? ?? [])
+        jsonDecode(prefs.getString(prefKey) ?? '{}');
+    final items = (data['cache'] as List ?? [])
         .map((json) => CacheItem.fromJson(this, json))
         .toList()
         .where(isValidCacheItem)
         .toList();
 
     (await policyManager.restore(items))
-        .forEach((item) => _cache[item.key!] = item);
+        .forEach((item) => _cache[item.key] = item);
 
     if (clearNow) {
       await _cleanup();
@@ -144,10 +143,10 @@ class CacheStore {
   /// Optional [custom] data to pass to [fetch] or [CacheStore.fetch] function.
   Future<File> getFile(
     final String url, {
-    final Map<String, String>? headers,
-    final Map<String, dynamic>? custom,
-    final String? key,
-    final CustomFetch? fetch,
+    final Map<String, String> headers,
+    final Map<String, dynamic> custom,
+    final String key,
+    final CustomFetch fetch,
     final bool flushCache = false,
   }) async {
     final item = await _getItem(key, url);
@@ -160,18 +159,18 @@ class CacheStore {
   /// Forces to delete cached files with keys [urlOrKeys]
   /// [urlOrKeys] is a list of keys. You may omit the key then will be the URL
   Future<void> flush(final List<String> urlOrKeys) {
-    final Iterable<CacheItem> items = urlOrKeys
+    final items = urlOrKeys
         .map((key) => _cache[key])
         .where((item) => item != null)
-        .map((item) => item!);
-    final List<Future> futures = items.map(_removeFile).toList();
+        .toList();
+    final futures = items.map(_removeFile).toList();
     futures.add(policyManager.onFlushed(items));
     return Future.wait(futures);
   }
 
   final _itemLock = new Lock();
 
-  Future<CacheItem> _getItem(String? key, String url) async {
+  Future<CacheItem> _getItem(String key, String url) async {
     final k = key ?? url;
     var item = _cache[k];
     if (item != null) return item;
@@ -182,16 +181,15 @@ class CacheStore {
 
       final filename = policyManager.generateFilename(key: key, url: url);
       item = CacheItem(store: this, key: k, filename: filename);
-      _cache[k] = item!;
-      policyManager.onAdded(item!);
+      _cache[k] = item;
+      policyManager.onAdded(item);
     });
-
-    return item!;
+    return item;
   }
 
   bool _delayedCleaning = false;
   final _cleanLock = new Lock();
-  int? _lastCacheHash;
+  int _lastCacheHash;
 
   Future<void> _removeFile(CacheItem item) async {
     final file = File(item.fullPath);
@@ -211,7 +209,7 @@ class CacheStore {
 
         _lastCacheHash = cacheString.hashCode;
         await Future.wait([
-          if (prefs != null) prefs!.setString(prefKey, cacheString),
+          prefs.setString(prefKey, cacheString),
           _removeCachedFiles(),
         ]);
       });

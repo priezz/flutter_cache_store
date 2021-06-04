@@ -33,7 +33,7 @@ class CacheItem {
   CacheItemPayload? payload;
 
   /// Absolute path of the file
-  String get fullPath => '${store?.path}/$filename';
+  String get fullPath => '${store.path}/$filename';
 
   /// Converts it to `JSON` to persist the item on disk
   Map<String, dynamic> toJson() => {
@@ -127,7 +127,7 @@ class CacheStore {
         .toList();
 
     (await policyManager.restore(items))
-        .forEach((item) => _cache[item.key!] = item);
+        .forEach((item) => _cache[item.key] = item);
 
     if (clearNow) {
       await _cleanup();

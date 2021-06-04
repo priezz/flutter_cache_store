@@ -69,8 +69,8 @@ class LRUCachePolicy extends LessRecentlyUsedPolicy {
   LRUCachePolicy({int? maxCount}) : super(maxCount: maxCount);
 
   @override
-  String generateFilename({String? key, String? url}) =>
-      key ?? 'key'; // use key as the filename
+  String generateFilename({required String key, String? url}) =>
+      key; // use key as the filename
 }
 
 void customizedCacheFileStructure() async {

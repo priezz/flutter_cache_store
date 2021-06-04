@@ -7,17 +7,11 @@ import '../flutter_cache_store.dart';
 
 /// Custom Fetch method interface
 /// Optional parameter [custom] (`Map<String, dynamic>`) you can pass with [getFile]
-typedef CustomFetch = Future<http.Response> Function(
-  dynamic url, {
-  Map<String, String>? headers,
-  Map<String, dynamic>? custom,
-});
+typedef CustomFetch = Future<http.Response> Function(dynamic url,
+    {Map<String, String> headers, Map<String, dynamic> custom});
 
-Future<http.Response> _defaultGetter(
-  String url, {
-  Map<String, String>? headers,
-  Map<String, dynamic>? custom,
-}) =>
+Future<http.Response> _defaultGetter(String url,
+        {Map<String, String> headers, Map<String, dynamic> custom}) =>
     http.get(Uri.parse(url), headers: headers);
 
 /// Some helpers for internal usage
@@ -37,7 +31,7 @@ class Utils {
 
   /// Returns a random filename with 11 chars based on timestamp
   static String genName() {
-    final codes = List<int>.filled(11, 0);
+    final codes = List<int>(11);
     var x = genUniqId();
     codes[0] = _c64(((x & 0x7000000000000000) >> 60) | (x < 0 ? 8 : 0));
     x &= (1 << 60) - 1;
@@ -50,7 +44,7 @@ class Utils {
   /// Generates a random number combined based on timestamp
   static int genUniqId() => (_rand.nextInt(0x80000) << 45) | genNow();
 
-  static final _downloadLocks = <String, Lock?>{};
+  static final _downloadLocks = <String, Lock>{};
 
   /// Makes a `GET` request to [url] and save it to [item.fullPath]
   /// [url] and Optional [headers] parameters will pass to `http.get`
@@ -61,12 +55,12 @@ class Utils {
     bool useCache,
     OnDownloaded onDownloaded,
     String url, {
-    CustomFetch? fetch,
-    Map<String, String>? headers,
-    Map<String, dynamic>? custom,
+    CustomFetch fetch,
+    Map<String, String> headers,
+    Map<String, dynamic> custom,
   }) async {
     final file = File(item.fullPath);
-    final key = item.filename!;
+    final key = item.filename;
     if (useCache &&
         await file.exists() &&
         ((_downloadLocks.containsKey(key) && _downloadLocks[key] == null) ||
@@ -85,8 +79,8 @@ class Utils {
             (fetch ?? _defaultGetter)(url, headers: headers, custom: custom),
           ]);
 
-          final File f = results.first as File;
-          final http.Response response = results.last as http.Response;
+          final File f = results.first;
+          final http.Response response = results.last;
 
           await Future.wait([
             onDownloaded(item, response.headers),

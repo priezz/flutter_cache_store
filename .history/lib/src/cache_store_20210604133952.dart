@@ -18,22 +18,26 @@ class CacheItem {
   /// [store] is used to indicate the base file path [store.path]
   /// [key] is used to identify uniqueness of a file
   /// [filename] is relative path and filename to [store.path]
-  CacheItem({this.store, this.key, this.filename});
+  CacheItem({
+    required this.store,
+    required this.key,
+    required this.filename,
+  });
 
   /// Returns the store owns the item
-  final CacheStore? store;
+  final CacheStore store;
 
   /// Returns the unique key of an item
-  final String? key;
+  final String key;
 
   /// Relative path and filename to [rootPath]
-  final String? filename;
+  final String filename;
 
   /// Holds extra-data required by a `Policy`
   CacheItemPayload? payload;
 
   /// Absolute path of the file
-  String get fullPath => '${store?.path}/$filename';
+  String get fullPath => '${store.path}/$filename';
 
   /// Converts it to `JSON` to persist the item on disk
   Map<String, dynamic> toJson() => {
@@ -59,8 +63,8 @@ class CacheStore {
   /// Unique namespace
   final String? namespace;
   final CacheStorePolicy policyManager;
-  String get path =>
-      namespace == null ? _rootPath! : '${_rootPath}__$namespace';
+  String? get path =>
+      namespace == null ? _rootPath : '${_rootPath}__$namespace';
 
   /// A simple callback function to customize your own fetch method.
   /// You can change it anytime. See its interface: [CustomFetch]
@@ -127,7 +131,7 @@ class CacheStore {
         .toList();
 
     (await policyManager.restore(items))
-        .forEach((item) => _cache[item.key!] = item);
+        .forEach((item) => _cache[item.key] = item);
 
     if (clearNow) {
       await _cleanup();
@@ -160,11 +164,11 @@ class CacheStore {
   /// Forces to delete cached files with keys [urlOrKeys]
   /// [urlOrKeys] is a list of keys. You may omit the key then will be the URL
   Future<void> flush(final List<String> urlOrKeys) {
-    final Iterable<CacheItem> items = urlOrKeys
+    final items = urlOrKeys
         .map((key) => _cache[key])
         .where((item) => item != null)
-        .map((item) => item!);
-    final List<Future> futures = items.map(_removeFile).toList();
+        .toList();
+    final futures = items.map(_removeFile).toList();
     futures.add(policyManager.onFlushed(items));
     return Future.wait(futures);
   }
@@ -182,11 +186,10 @@ class CacheStore {
 
       final filename = policyManager.generateFilename(key: key, url: url);
       item = CacheItem(store: this, key: k, filename: filename);
-      _cache[k] = item!;
-      policyManager.onAdded(item!);
+      _cache[k] = item;
+      policyManager.onAdded(item);
     });
-
-    return item!;
+    return item;
   }
 
   bool _delayedCleaning = false;
@@ -211,7 +214,7 @@ class CacheStore {
 
         _lastCacheHash = cacheString.hashCode;
         await Future.wait([
-          if (prefs != null) prefs!.setString(prefKey, cacheString),
+          prefs.setString(prefKey, cacheString),
           _removeCachedFiles(),
         ]);
       });

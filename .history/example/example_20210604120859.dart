@@ -47,11 +47,8 @@ void api() async {
 
 // Custom fetch function.
 // A demo of how you can achieve a fetch supporting POST with body
-Future<Response> myFetch(
-  url, {
-  Map<String, String>? headers,
-  Map<String, dynamic>? custom,
-}) {
+Future<Response> myFetch(url,
+    {Map<String, String> headers, Map<String, dynamic> custom}) {
   final data = custom ?? {};
   switch (data['method'] ?? '') {
     case 'POST':
@@ -66,11 +63,11 @@ Future<Response> myFetch(
 // [ADVANCED USAGE]
 // Extends a Policy class and override `generateFilename`
 class LRUCachePolicy extends LessRecentlyUsedPolicy {
-  LRUCachePolicy({int? maxCount}) : super(maxCount: maxCount);
+  LRUCachePolicy({int maxCount}) : super(maxCount: maxCount);
 
   @override
-  String generateFilename({String? key, String? url}) =>
-      key ?? 'key'; // use key as the filename
+  String generateFilename({final String key, final String url}) =>
+      key; // use key as the filename
 }
 
 void customizedCacheFileStructure() async {

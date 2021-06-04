@@ -10,8 +10,8 @@ class CacheControlPolicy extends TimestampBasedPolicy {
     int maxCount = 999,
     Duration minAge = const Duration(seconds: 30),
     Duration maxAge = const Duration(days: 30),
-  })  : this.minAge = minAge.inSeconds,
-        this.maxAge = maxAge.inSeconds,
+  })  : this.minAge = minAge?.inSeconds,
+        this.maxAge = maxAge?.inSeconds,
         super(maxCount);
 
   final int maxAge;
@@ -23,18 +23,17 @@ class CacheControlPolicy extends TimestampBasedPolicy {
 
   Future<void> onDownloaded(
       final CacheItem item, final Map<String, String> headers) async {
-    final Iterable<String> cc = (headers['cache-control'] ?? '')
+    final cc = (headers['cache-control'] ?? '')
         .split(',')
         .map((s) => s.trim())
         .map((s) => s.startsWith('max-age=') || s.startsWith('s-maxage=')
             ? s.split('=')[1]
             : null)
-        .where((s) => s != null)
-        .map((s) => s!);
+        .where((s) => s != null);
 
     var age = cc.isEmpty ? 0 : int.tryParse(cc.first) ?? 0;
-    if (age < minAge) age = minAge;
-    if (age > maxAge) age = maxAge;
+    if (minAge != null && age < minAge) age = minAge;
+    if (maxAge != null && age > maxAge) age = maxAge;
 
     item.payload = TimestampPayload(now() + age);
   }

@@ -8,10 +8,10 @@ export '../cache_store.dart';
 
 /// [CacheItemPayload] to hold a timestamp field
 class TimestampPayload extends CacheItemPayload {
-  TimestampPayload([int? value]) {
+  TimestampPayload([int value]) {
     timestamp = value ?? DateTime.now().millisecondsSinceEpoch;
   }
-  late int timestamp;
+  int timestamp;
 }
 
 /// Generic base class for policies based on timestamps.
@@ -39,10 +39,10 @@ abstract class TimestampBasedPolicy extends CacheStorePolicy {
     final timestamps = <String, dynamic>{};
     items.forEach((item) {
       final ts = getTimestamp(item) ?? DateTime.now().millisecondsSinceEpoch;
-      if (item.key != null) timestamps[item.key!] = ts.toString();
+      timestamps[item.key] = ts.toString();
     });
 
-    await CacheStore.prefs!.setString(storeKey, jsonEncode(timestamps));
+    await CacheStore.prefs.setString(storeKey, jsonEncode(timestamps));
   }
 
   Future<Iterable<CacheItem>> cleanup(Iterable<CacheItem> allItems) async {
@@ -60,7 +60,7 @@ abstract class TimestampBasedPolicy extends CacheStorePolicy {
 
   Future<Iterable<CacheItem>> restore(List<CacheItem> allItems) async {
     Map<String, dynamic> stored =
-        jsonDecode(CacheStore.prefs!.getString(storeKey) ?? '{}');
+        jsonDecode(CacheStore.prefs.getString(storeKey) ?? '{}');
     final now = DateTime.now().millisecondsSinceEpoch;
     return allItems.map((item) {
       final String? ts = stored[item.key];
